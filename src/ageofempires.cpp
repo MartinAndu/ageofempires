@@ -9,18 +9,18 @@
 
 using namespace std;
 
-SDL_Texture *LoadTexture(string archivo, SDL_Renderer *renderTarget) {
-	SDL_Surface *surface = IMG_Load(archivo.c_str());
+SDL_Texture *LoadTexture(string archivo, SDL_Renderer *render) {
+	SDL_Surface *superficie = IMG_Load(archivo.c_str());
 	SDL_Texture *textura = nullptr;
-	if (surface == NULL) {
-		cout << "Error surface LoadTexture" << endl;
+	if (superficie == NULL) {
+		cout << "Error superficie LoadTexture" << endl;
 	} else {
-		textura = SDL_CreateTextureFromSurface(renderTarget, surface);
+		textura = SDL_CreateTextureFromSurface(render, superficie);
 		if (textura == NULL)
 			cout << "Error textura LoadTexture" << endl;
 	}
 
-	SDL_FreeSurface(surface);
+	SDL_FreeSurface(superficie);
 	return textura;
 }
 
@@ -28,15 +28,12 @@ SDL_Texture *LoadTexture(string archivo, SDL_Renderer *renderTarget) {
 int main(int argc, char **argv) {
 
 	bool corriendo = true;
-	SDL_Event evento;
+
 	SDL_Window *ventana = nullptr;
-	SDL_Renderer *renderTargetPlayer = nullptr;
-	SDL_Texture *imagenPlayer = nullptr;
+	SDL_Renderer *render = nullptr;
 	SDL_Texture *textura = nullptr;
-	SDL_Rect playerRect;
-	SDL_Rect posicionPlayer;
-	posicionPlayer.x = posicionPlayer.y = 0;
-	posicionPlayer.w = posicionPlayer.h = 32;
+	SDL_Event evento;
+
 	SDL_Rect camaraRect = {0, 0, ANCHO_PANTALLA, ALTO_PANTALLA};
 
 	int currentTime = 0;
@@ -52,6 +49,12 @@ int main(int argc, char **argv) {
 	}
 
 
+	// Flags para las imagenes
+	int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
+	if (IMG_Init(imgFlags) != imgFlags)
+		cout << "Error en imgFLags" << IMG_GetError() << endl;
+
+
 	// Pantalla principal
 	ventana = SDL_CreateWindow("Age of Empires",
 		   	   	   	   	   	  SDL_WINDOWPOS_CENTERED,
@@ -63,22 +66,17 @@ int main(int argc, char **argv) {
 		cout << "Error en ventana" << endl << SDL_GetError() << endl;
 
 
-	// Flags para las imagenes
-	int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
-	if (IMG_Init(imgFlags) != imgFlags)
-		cout << "Error imgFLags" << IMG_GetError() << endl;
-
-
-	renderTargetPlayer = SDL_CreateRenderer(ventana, -1, SDL_RENDERER_ACCELERATED |
+	render = SDL_CreateRenderer(ventana, -1, SDL_RENDERER_ACCELERATED |
 											SDL_RENDERER_PRESENTVSYNC);
+	if (render == NULL)
+		cout << "Error en render" << endl;
+
+	textura = LoadTexture("img/back.png", render);
+	SDL_SetRenderDrawColor(render, 0xFF, 0, 0, 0xFF); // color de fondo rojo
 
 
 	// Personaje
-	Player player1(renderTargetPlayer, "img/charac.png", 0, 0, 3, 4);
-
-	SDL_SetRenderDrawColor(renderTargetPlayer, 0xFF, 0, 0, 0xFF); // color de fondo rojo
-
-	textura = LoadTexture("img/back.png", renderTargetPlayer);
+	Player player1(render, "img/charac.png", 0, 0, 3, 4);
 
 
    // Loop principal
@@ -86,10 +84,11 @@ int main(int argc, char **argv) {
 		prevTime = currentTime;
 		currentTime = SDL_GetTicks();
 		delta = (currentTime - prevTime) / 1000.0f;
+
 		// recibo eventos
 		while (SDL_PollEvent( &evento ) != 0) {
 			switch (evento.type) {
-			// Cerrar pantalla
+			// cerrar pantalla
 			case SDL_QUIT:
 				corriendo = false;
 				break;
@@ -108,20 +107,21 @@ int main(int argc, char **argv) {
 		if (camaraRect.y < 0)
 			camaraRect.y = 0;
 
-		SDL_RenderClear(renderTargetPlayer);
-		SDL_RenderCopy(renderTargetPlayer, textura, &camaraRect, NULL);
-		player1.Dibujar(renderTargetPlayer, camaraRect);
-		SDL_RenderPresent(renderTargetPlayer),
+		SDL_RenderClear(render);
+		SDL_RenderCopy(render, textura, &camaraRect, NULL);
+		player1.Dibujar(render, camaraRect);
+		SDL_RenderPresent(render),
 		SDL_UpdateWindowSurface(ventana); // actualizo ventana!
 	}
 
 	ventana = nullptr;
-	renderTargetPlayer = nullptr;
+	render = nullptr;
+	textura = nullptr;
 
 	SDL_Delay(100); // tardar al cerrar
 	SDL_DestroyWindow(ventana);
+	SDL_DestroyRenderer(render);
 	SDL_DestroyTexture(textura);
-	SDL_DestroyRenderer(renderTargetPlayer);
 	IMG_Quit();
 	SDL_Quit();
 
