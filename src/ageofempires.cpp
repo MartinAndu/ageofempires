@@ -1,26 +1,27 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "Player.h"
 
-#define ANCHO_PANTALLA 500
-#define ALTO_PANTALLA 300
+#define ANCHO_PANTALLA 640
+#define ALTO_PANTALLA 480
 #define FPS 60
 
 using namespace std;
 
-
-SDL_Texture *LoadTexture(string filePath, SDL_Renderer *renderTarget) {
-	SDL_Surface *surface = IMG_Load(filePath.c_str());
-	SDL_Texture *texture;
+SDL_Texture *LoadTexture(string archivo, SDL_Renderer *renderTarget) {
+	SDL_Surface *surface = IMG_Load(archivo.c_str());
+	SDL_Texture *textura = nullptr;
 	if (surface == NULL) {
-		cout << "Error textura" << endl;
+		cout << "Error surface LoadTexture" << endl;
 	} else {
-		texture = SDL_CreateTextureFromSurface(renderTarget, surface);
-		if (texture == NULL)
-			cout << "Error optimizedSurface" << endl;
+		textura = SDL_CreateTextureFromSurface(renderTarget, surface);
+		if (textura == NULL)
+			cout << "Error textura LoadTexture" << endl;
 	}
+
 	SDL_FreeSurface(surface);
-	return texture;
+	return textura;
 }
 
 
@@ -31,19 +32,16 @@ int main(int argc, char **argv) {
 	SDL_Window *ventana = nullptr;
 	SDL_Renderer *renderTargetPlayer = nullptr;
 	SDL_Texture *imagenPlayer = nullptr;
+	SDL_Texture *textura = nullptr;
 	SDL_Rect playerRect;
 	SDL_Rect posicionPlayer;
 	posicionPlayer.x = posicionPlayer.y = 0;
 	posicionPlayer.w = posicionPlayer.h = 32;
-	int anchoFrame, altoFrame;
-	int anchoTextura, altoTextura;
-	// para que corra igual sin importar la velocidad de las computadoras
-	float frameTime = 0;
-	int prevTime = 0;
+	SDL_Rect camaraRect = {0, 0, ANCHO_PANTALLA, ALTO_PANTALLA};
+
 	int currentTime = 0;
-	float tiempoDelta = 0;
-	float velocidadMov = 200.0f;
-	// para que no tarde en arrancar el personaje
+	int prevTime = 0;
+	float delta = 0.0f;
 	const Uint8 *keyState;
 
 
@@ -56,8 +54,8 @@ int main(int argc, char **argv) {
 
 	// Pantalla principal
 	ventana = SDL_CreateWindow("Age of Empires",
-		   	   	   	   	   	  SDL_WINDOWPOS_UNDEFINED,
-		   	   	   	   	   	  SDL_WINDOWPOS_UNDEFINED,
+		   	   	   	   	   	  SDL_WINDOWPOS_CENTERED,
+		   	   	   	   	   	  SDL_WINDOWPOS_CENTERED,
 		   	   	   	   	   	  ANCHO_PANTALLA,
 		   	   	   	   	   	  ALTO_PANTALLA,
 		   	   	   	   	   	  SDL_WINDOW_RESIZABLE   );
@@ -71,30 +69,23 @@ int main(int argc, char **argv) {
 		cout << "Error imgFLags" << IMG_GetError() << endl;
 
 
-	// Personaje
 	renderTargetPlayer = SDL_CreateRenderer(ventana, -1, SDL_RENDERER_ACCELERATED |
 											SDL_RENDERER_PRESENTVSYNC);
-	imagenPlayer = LoadTexture("img/charac.png", renderTargetPlayer);
-	SDL_QueryTexture(imagenPlayer, NULL, NULL, &anchoTextura, &altoTextura);
 
-	anchoFrame = anchoTextura / 3;
-	altoFrame = altoTextura / 4;
 
-	playerRect.x = playerRect.y = 0;
-	playerRect.w = anchoFrame;
-	playerRect.h = altoFrame;
+	// Personaje
+	Player player1(renderTargetPlayer, "img/charac.png", 0, 0, 3, 4);
 
 	SDL_SetRenderDrawColor(renderTargetPlayer, 0xFF, 0, 0, 0xFF); // color de fondo rojo
+
+	textura = LoadTexture("img/back.png", renderTargetPlayer);
 
 
    // Loop principal
 	while (corriendo) {
-
 		prevTime = currentTime;
-		currentTime = SDL_GetTicks(); // milisegundos desde que corre el juego
-		// cuanto paso desde el frame anterior
-		tiempoDelta = (currentTime - prevTime) / 1000.0f;
-
+		currentTime = SDL_GetTicks();
+		delta = (currentTime - prevTime) / 1000.0f;
 		// recibo eventos
 		while (SDL_PollEvent( &evento ) != 0) {
 			switch (evento.type) {
@@ -106,32 +97,32 @@ int main(int argc, char **argv) {
 		}
 
 		keyState = SDL_GetKeyboardState(NULL);
-		if (keyState[SDL_SCANCODE_RIGHT])
-			posicionPlayer.x += velocidadMov * tiempoDelta;
-		else if (keyState[SDL_SCANCODE_LEFT])
-			posicionPlayer.x -= velocidadMov * tiempoDelta;
 
-		if (keyState[SDL_SCANCODE_DOWN])
-			posicionPlayer.y += velocidadMov * tiempoDelta;
-		else if (keyState[SDL_SCANCODE_UP])
-			posicionPlayer.y -= velocidadMov * tiempoDelta;
+		player1.Update(delta, keyState);
 
-		frameTime += tiempoDelta;
-		if (frameTime >= 0.25f) {
-			frameTime = 0;
-			playerRect.x += anchoFrame;
-			if (playerRect.x >= anchoTextura)
-				playerRect.x = 0;
-		}
+		camaraRect.x = player1.GetOriginX() - (ANCHO_PANTALLA / 2);
+		camaraRect.y = player1.GetOriginY() - (ALTO_PANTALLA / 2);
+
+		if (camaraRect.x < 0)
+			camaraRect.x = 0;
+		if (camaraRect.y < 0)
+			camaraRect.y = 0;
 
 		SDL_RenderClear(renderTargetPlayer);
-		SDL_RenderCopy(renderTargetPlayer, imagenPlayer, &playerRect, &posicionPlayer);
+		SDL_RenderCopy(renderTargetPlayer, textura, &camaraRect, NULL);
+		player1.Dibujar(renderTargetPlayer, camaraRect);
 		SDL_RenderPresent(renderTargetPlayer),
-		SDL_UpdateWindowSurface(ventana); // actualizo!
+		SDL_UpdateWindowSurface(ventana); // actualizo ventana!
 	}
+
+	ventana = nullptr;
+	renderTargetPlayer = nullptr;
 
 	SDL_Delay(100); // tardar al cerrar
 	SDL_DestroyWindow(ventana);
+	SDL_DestroyTexture(textura);
+	SDL_DestroyRenderer(renderTargetPlayer);
+	IMG_Quit();
 	SDL_Quit();
 
 	cout << "FLOR llega hasta return :)" << endl;
