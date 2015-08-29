@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 	// Personaje
 	renderTargetPlayer = SDL_CreateRenderer(ventana, -1, SDL_RENDERER_ACCELERATED |
 											SDL_RENDERER_PRESENTVSYNC);
-	imagenPlayer = LoadTexture("charac.png", renderTargetPlayer);
+	imagenPlayer = LoadTexture("img/charac.png", renderTargetPlayer);
 	SDL_QueryTexture(imagenPlayer, NULL, NULL, &anchoTextura, &altoTextura);
 
 	anchoFrame = anchoTextura / 3;
