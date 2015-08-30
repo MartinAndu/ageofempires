@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
    // Loop principal
 	while (corriendo) {
 		prevTime = currentTime;
-		currentTime = SDL_GetTicks();
+		currentTime = SDL_GetTicks(); // milisegundos desde que inicio
 		delta = (currentTime - prevTime) / 1000.0f;
 
 		// recibo eventos
@@ -99,8 +99,8 @@ int main(int argc, char **argv) {
 
 		player1.Update(delta, keyState);
 
-		camaraRect.x = player1.GetOriginX() - (ANCHO_PANTALLA / 2);
-		camaraRect.y = player1.GetOriginY() - (ALTO_PANTALLA / 2);
+		camaraRect.x = player1.GetOrigenX() - (ANCHO_PANTALLA / 2);
+		camaraRect.y = player1.GetOrigenY() - (ALTO_PANTALLA / 2);
 
 		if (camaraRect.x < 0)
 			camaraRect.x = 0;

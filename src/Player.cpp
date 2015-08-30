@@ -4,35 +4,38 @@
 
 using namespace std;
 
-Player::Player(SDL_Renderer *renderTarget, std::string archivo, int x, int y, int framesX, int framesY) {
-	SDL_Surface *surface = IMG_Load(archivo.c_str());
-	if (surface == NULL) {
-		cout << "Error textura" << endl;
+Player::Player(SDL_Renderer *render, std::string archivo, int posX, int posY, int cantFramesX, int cantFramesY) {
+	SDL_Surface *superficie = IMG_Load(archivo.c_str());
+	if (superficie == NULL) {
+		cout << "Error en superficie Player" << endl;
 	} else {
-		textura = SDL_CreateTextureFromSurface(renderTarget, surface);
+		textura = SDL_CreateTextureFromSurface(render, superficie);
 		if (textura == NULL)
-			cout << "Error optimizedSurface" << endl;
+			cout << "Error en textura Player" << endl;
 	}
 
-	SDL_FreeSurface(surface);
+	SDL_FreeSurface(superficie); // borro superficie, ya la converti en textura
 
-	SDL_QueryTexture(textura, NULL, NULL, &cropRect.w, &cropRect.h);
+	SDL_QueryTexture(textura, NULL, NULL, &cropRect.w, &cropRect.h); // obtengo w y h de la textura
 
 	// posicion inicial del jugador
-	posicionPlayer.x = x;
-	posicionPlayer.y = y;
+	posicionPlayer.x = posX;
+	posicionPlayer.y = posY;
 
+	// defino w y h de la textura
 	anchoTextura = cropRect.w;
 	altoTextura = cropRect.h;
 
-	cropRect.w /= framesX;
-	cropRect.h /= framesY;
+	// el rectangulo es w y h de la textura dividido la cantidad de dibujos
+	cropRect.w /= cantFramesX;
+	cropRect.h /= cantFramesY;
 
 	anchoFrame = posicionPlayer.w = cropRect.w;
 	altoFrame = posicionPlayer.h = cropRect.h;
 
-	originX = anchoFrame / 2;
-	originY = altoFrame / 2;
+	//
+	origenX = anchoFrame / 2;
+	origenY = altoFrame / 2;
 
 	contadorFrames = 0;
 	estaActivo = false;
@@ -84,23 +87,24 @@ void Player::Update(float tiempoDelta, const Uint8 *keyState) {
 			cropRect.x += anchoFrame;
 			if (cropRect.x >= anchoTextura)
 				cropRect.x = 0;
-		} else {
-			contadorFrames = 0;
-			cropRect.x = anchoFrame;
 		}
+	} else {
+		contadorFrames = 0;
+		cropRect.x = anchoFrame;
 	}
 }
 
-void Player::Dibujar(SDL_Renderer *renderTarget, SDL_Rect camaraRect) {
+
+void Player::Dibujar(SDL_Renderer *render, SDL_Rect camaraRect) {
 	SDL_Rect drawingRect = {posicionPlayer.x - camaraRect.x, posicionPlayer.y - camaraRect.y, posicionPlayer.w, posicionPlayer.h};
-	SDL_RenderCopy(renderTarget, textura, &cropRect, &drawingRect);
+	SDL_RenderCopy(render, textura, &cropRect, &drawingRect);
 }
 
 
-int Player::GetOriginX() {
-	return originX;
+int Player::GetOrigenX() {
+	return origenX;
 }
 
-int Player::GetOriginY() {
-	return originY;
+int Player::GetOrigenY() {
+	return origenY;
 }
