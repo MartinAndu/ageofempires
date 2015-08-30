@@ -24,6 +24,7 @@ private:
 	int origenX, origenY;
 
 public:
+	Player();
 	Player(SDL_Renderer *render, std::string archivo, int posX, int posY, int cantFramesX, int cantFramesY);
 	virtual ~Player();
 
