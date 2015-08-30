@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
 	SDL_Texture *textura = nullptr;
 	SDL_Event evento;
 
+	// para el scroll de la pantalla
 	SDL_Rect camaraRect = {0, 0, ANCHO_PANTALLA, ALTO_PANTALLA};
 
 	int currentTime = 0;
@@ -71,16 +72,17 @@ int main(int argc, char **argv) {
 	if (render == NULL)
 		cout << "Error en render" << endl;
 
-	textura = LoadTexture("img/back.png", render);
-	SDL_SetRenderDrawColor(render, 0xFF, 0, 0, 0xFF); // color de fondo rojo
+	//SDL_SetRenderDrawColor(render, 0xFF, 0, 0, 0xFF); // color de fondo rojo
 
 
 	// Personaje
 	Player player1(render, "img/charac.png", 0, 0, 3, 4);
 
+	textura = LoadTexture("img/back.png", render);
 
    // Loop principal
 	while (corriendo) {
+		// todo revisar tiempos
 		prevTime = currentTime;
 		currentTime = SDL_GetTicks(); // milisegundos desde que inicio
 		delta = (currentTime - prevTime) / 1000.0f;
@@ -99,6 +101,7 @@ int main(int argc, char **argv) {
 
 		player1.Update(delta, keyState);
 
+		// todo para el scroll
 		camaraRect.x = player1.GetOrigenX() - (ANCHO_PANTALLA / 2);
 		camaraRect.y = player1.GetOrigenY() - (ALTO_PANTALLA / 2);
 
@@ -110,8 +113,7 @@ int main(int argc, char **argv) {
 		SDL_RenderClear(render);
 		SDL_RenderCopy(render, textura, &camaraRect, NULL);
 		player1.Dibujar(render, camaraRect);
-		SDL_RenderPresent(render),
-		SDL_UpdateWindowSurface(ventana); // actualizo ventana!
+		SDL_RenderPresent(render);
 	}
 
 	ventana = nullptr;

@@ -33,7 +33,7 @@ Player::Player(SDL_Renderer *render, std::string archivo, int posX, int posY, in
 	anchoFrame = posicionPlayer.w = cropRect.w;
 	altoFrame = posicionPlayer.h = cropRect.h;
 
-	//
+	// el centro del jugador es el origen
 	origenX = anchoFrame / 2;
 	origenY = altoFrame / 2;
 
@@ -70,7 +70,7 @@ void Player::Update(float tiempoDelta, const Uint8 *keyState) {
 	}
 	else if (keyState[keys[2]]) {
 		posicionPlayer.x -= velocidadMov * tiempoDelta;
-		cropRect.y = altoFrame;
+		cropRect.y = altoFrame * 1;
 	}
 	else if (keyState[keys[3]]) {
 		posicionPlayer.x += velocidadMov * tiempoDelta;
@@ -96,15 +96,15 @@ void Player::Update(float tiempoDelta, const Uint8 *keyState) {
 
 
 void Player::Dibujar(SDL_Renderer *render, SDL_Rect camaraRect) {
-	SDL_Rect drawingRect = {posicionPlayer.x - camaraRect.x, posicionPlayer.y - camaraRect.y, posicionPlayer.w, posicionPlayer.h};
+	SDL_Rect drawingRect = { posicionPlayer.x - camaraRect.x, posicionPlayer.y - camaraRect.y, posicionPlayer.w, posicionPlayer.h};
 	SDL_RenderCopy(render, textura, &cropRect, &drawingRect);
 }
 
 
 int Player::GetOrigenX() {
-	return origenX;
+	return origenX + posicionPlayer.x;
 }
 
 int Player::GetOrigenY() {
-	return origenY;
+	return origenY + posicionPlayer.y;
 }
